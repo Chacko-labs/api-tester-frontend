@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { Trash2, Settings, Copy, Check, Code, Plus, X, Search, Menu, User, ShieldCheck, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import Link from 'next/link';
 
 interface TestResult {
   testName: string;
@@ -103,7 +104,6 @@ export default function PostmanDashboard() {
 
   // --- LOCALSTORAGE DATA HANDLERS ---
   useEffect(() => {
-    // 1. Load User Profile
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
@@ -113,7 +113,6 @@ export default function PostmanDashboard() {
       }
     }
 
-    // 2. Load History and Collections
     const savedHistory = localStorage.getItem('api_tester_history');
     if (savedHistory) {
       try {
@@ -139,14 +138,12 @@ export default function PostmanDashboard() {
     setUser(null);
   };
 
-  // Update Current Tab Helper Function
   const updateCurrentTab = (fields: Partial<TabItem>) => {
     setTabs((prev) =>
       prev.map((tab) => (tab.id === activeTabId ? { ...tab, ...fields } : tab))
     );
   };
 
-  // Add New Tab
   const handleAddNewTab = () => {
     const newId = `tab-${Date.now()}`;
     const newTab: TabItem = {
@@ -168,7 +165,6 @@ export default function PostmanDashboard() {
     setActiveTabId(newId);
   };
 
-  // Close Tab
   const handleCloseTab = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (tabs.length === 1) return;
@@ -179,7 +175,6 @@ export default function PostmanDashboard() {
     }
   };
 
-  // Copy Response Handler
   const handleCopyResponse = () => {
     if (currentTab.response?.body) {
       navigator.clipboard.writeText(JSON.stringify(currentTab.response.body, null, 2));
@@ -188,7 +183,6 @@ export default function PostmanDashboard() {
     }
   };
 
-  // Replace {{var}} with Environment values
   const replaceVariables = (text: string) => {
     if (!text) return text;
     let result = text;
@@ -201,7 +195,6 @@ export default function PostmanDashboard() {
     return result;
   };
 
-  // JSON Syntax Highlighter Helper Component
   const renderPrettyJson = (data: any) => {
     if (data === null || data === undefined) return null;
     const jsonString = typeof data === 'string' ? data : JSON.stringify(data, null, 2);
@@ -233,7 +226,6 @@ export default function PostmanDashboard() {
     );
   };
 
-  // Code Snippet Generator
   const generateCodeSnippet = () => {
     const targetUrl = replaceVariables(currentTab.url) || 'https://api.example.com/data';
     const activeHeaders: Record<string, string> = {};
@@ -284,7 +276,6 @@ export default function PostmanDashboard() {
     setTimeout(() => setCodeCopied(false), 2000);
   };
 
-  // Delete Handlers
   const handleDeleteHistory = (id: number, e: React.MouseEvent) => {
     e.stopPropagation();
     const updated = historyList.filter((item) => item.id !== id);
@@ -299,7 +290,6 @@ export default function PostmanDashboard() {
     localStorage.setItem('api_tester_collections', JSON.stringify(updated));
   };
 
-  // Param Handlers
   const handleParamChange = (index: number, key: string, value: string) => {
     const newParams = [...(currentTab.params || [])];
     newParams[index] = { key, value };
@@ -314,7 +304,6 @@ export default function PostmanDashboard() {
       params: (currentTab.params || []).filter((_, i) => i !== index),
     });
 
-  // Header Handlers
   const handleHeaderChange = (index: number, key: string, value: string) => {
     const newHeaders = [...currentTab.headers];
     newHeaders[index] = { key, value };
@@ -329,7 +318,6 @@ export default function PostmanDashboard() {
       headers: currentTab.headers.filter((_, i) => i !== index),
     });
 
-  // Send Request
   const handleSendRequest = async () => {
     setLoading(true);
     updateCurrentTab({ response: null });
@@ -342,7 +330,6 @@ export default function PostmanDashboard() {
       return;
     }
 
-    // Append Query Parameters to URL
     const activeParams = (currentTab.params || []).filter((p) => p.key.trim() !== '');
     if (activeParams.length > 0) {
       const queryString = activeParams
@@ -382,13 +369,10 @@ export default function PostmanDashboard() {
       });
 
       const responseTime = Date.now() - startTime;
-
-      // Calculate Response Size (KB)
       const responseString = typeof res.data === 'string' ? res.data : JSON.stringify(res.data);
       const sizeInBytes = new Blob([responseString || '']).size;
       const sizeInKb = (sizeInBytes / 1024).toFixed(2);
 
-      // Complete 7-Assertion Checklist
       const testResults: TestResult[] = [];
       const activeTests = currentTab.tests || [];
 
@@ -458,7 +442,6 @@ export default function PostmanDashboard() {
         responseTab: autoTab,
       });
 
-      // Save to History (LocalStorage)
       const newHistoryItem = {
         id: Date.now(),
         method: currentTab.method,
@@ -489,7 +472,6 @@ export default function PostmanDashboard() {
     }
   };
 
-  // Save Collection Handler
   const handleSaveToCollection = () => {
     if (!requestName.trim() || !currentTab.url.trim()) {
       alert("Please enter a Request Name and URL");
@@ -556,9 +538,9 @@ export default function PostmanDashboard() {
       
       {/* MOBILE TOP BAR */}
       <div className="flex md:hidden items-center justify-between p-3 bg-slate-900 border-b border-slate-800 sticky top-0 z-40 w-full">
-        <h2 className="text-sm font-bold flex items-center gap-2">
-          <span className="bg-indigo-600 text-white p-1 rounded">⚡</span> API Tester Pro
-        </h2>
+      <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight">
+  Welcome to API Tester Pro Workspace - Advanced Cloud Development Platform
+</h1>
         <button
           onClick={() => setMobileSidebarOpen(!mobileSidebarOpen)}
           className="p-1.5 text-slate-300 hover:text-white bg-slate-800 rounded"
@@ -573,7 +555,6 @@ export default function PostmanDashboard() {
           mobileSidebarOpen ? 'block fixed inset-0 top-[49px] bg-slate-900 z-30 p-4' : 'hidden'
         } md:block md:static w-full md:w-68 bg-slate-900 border-r border-slate-800 p-4 flex flex-col shrink-0`}
       >
-        {/* Professional Title & User Profile Section */}
         <div className="flex flex-col gap-3 border-b border-slate-800 pb-4 mb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -589,7 +570,6 @@ export default function PostmanDashboard() {
             </div>
           </div>
 
-          {/* User Profile Card / Sign In */}
           {user ? (
             <div className="bg-slate-950/80 border border-slate-800/80 rounded-lg p-2.5 flex items-center justify-between shadow-inner">
               <div className="flex items-center gap-2 overflow-hidden">
@@ -620,7 +600,6 @@ export default function PostmanDashboard() {
           )}
         </div>
 
-        {/* Search Input Bar */}
         <div className="relative mb-3">
           <Search size={13} className="absolute left-2.5 top-2.5 text-slate-500" />
           <input
@@ -632,7 +611,6 @@ export default function PostmanDashboard() {
           />
         </div>
 
-        {/* Sidebar Toggle */}
         <div className="flex border-b border-slate-800 mb-3 text-xs">
           <button
             onClick={() => setSidebarTab('history')}
@@ -658,7 +636,6 @@ export default function PostmanDashboard() {
           </button>
         </div>
 
-        {/* List Content */}
         <div className="flex-1 overflow-y-auto space-y-1 pr-1 max-h-[calc(100vh-160px)] md:max-h-none">
           <AnimatePresence mode="wait">
             {sidebarTab === 'history' ? (
@@ -750,7 +727,6 @@ export default function PostmanDashboard() {
 
       {/* 2. MAIN CONTENT AREA */}
       <div className="flex-1 flex flex-col min-w-0 w-full overflow-y-auto">
-        {/* MULTI-TAB HEADER BAR */}
         <div className="flex items-center bg-slate-900 border-b border-slate-800 px-2 pt-2 gap-1 overflow-x-auto w-full">
           {tabs.map((tab) => (
             <motion.div
@@ -790,7 +766,6 @@ export default function PostmanDashboard() {
         </div>
 
         <div className="p-3 md:p-6 flex-1 flex flex-col w-full">
-          {/* Environment & Code Button Bar */}
           <div className="flex flex-wrap justify-between items-center gap-2 mb-3">
             <span className="text-xs text-slate-400 font-medium">Request Builder</span>
             <div className="flex gap-2 w-full sm:w-auto justify-end">
@@ -815,10 +790,8 @@ export default function PostmanDashboard() {
             </div>
           </div>
 
-          {/* URL Input Area */}
           <div className="flex flex-col sm:flex-row gap-2 mb-6 w-full">
             <div className="flex gap-2 w-full sm:w-auto">
-              {/* Dynamic Styled Method Dropdown Selector */}
               <select
                 value={currentTab.method}
                 onChange={(e) => updateCurrentTab({ method: e.target.value })}
@@ -826,18 +799,10 @@ export default function PostmanDashboard() {
                   currentTab.method
                 )}`}
               >
-                <option value="GET" className="text-green-400 bg-slate-900 font-bold">
-                  GET
-                </option>
-                <option value="POST" className="text-yellow-400 bg-slate-900 font-bold">
-                  POST
-                </option>
-                <option value="PUT" className="text-orange-400 bg-slate-900 font-bold">
-                  PUT
-                </option>
-                <option value="DELETE" className="text-red-400 bg-slate-900 font-bold">
-                  DELETE
-                </option>
+                <option value="GET" className="text-green-400 bg-slate-900 font-bold">GET</option>
+                <option value="POST" className="text-yellow-400 bg-slate-900 font-bold">POST</option>
+                <option value="PUT" className="text-orange-400 bg-slate-900 font-bold">PUT</option>
+                <option value="DELETE" className="text-red-400 bg-slate-900 font-bold">DELETE</option>
               </select>
 
               <motion.button
@@ -883,7 +848,6 @@ export default function PostmanDashboard() {
               </motion.button>
             </div>
 
-            {/* Mobile Save Button */}
             <motion.button
               whileTap={{ scale: 0.97 }}
               onClick={() => {
@@ -896,9 +860,7 @@ export default function PostmanDashboard() {
             </motion.button>
           </div>
 
-          {/* Dynamic Request Builder & Response Area */}
           <div className="flex-1 flex flex-col md:grid md:grid-cols-2 gap-4 md:gap-6 w-full">
-            {/* Request Builder Box */}
             <div className="bg-slate-900 rounded border border-slate-800 p-3 md:p-4 flex flex-col min-h-[200px]">
               <div className="flex border-b border-slate-800 mb-4 gap-4 text-xs font-medium relative overflow-x-auto">
                 {[
@@ -1029,7 +991,7 @@ export default function PostmanDashboard() {
                         <textarea
                           value={currentTab.body}
                           onChange={(e) => updateCurrentTab({ body: e.target.value })}
-                          placeholder='{\n  "key": "value"\n}'
+                          placeholder={'{\n  "key": "value"\n}'}
                           className="w-full min-h-[120px] md:h-full bg-slate-950 border border-slate-800 rounded p-3 text-xs font-mono text-emerald-400 outline-none focus:border-slate-700 transition"
                         />
                       </div>
@@ -1074,13 +1036,11 @@ export default function PostmanDashboard() {
               </div>
             </div>
 
-            {/* Response Box */}
             <div className="bg-slate-900 rounded border border-slate-800 p-3 md:p-4 flex flex-col min-h-[200px]">
               <div className="flex flex-wrap justify-between items-center gap-2 mb-3 min-h-[32px]">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold">Response</h3>
 
-                  {/* Response Tabs */}
                   {currentTab.response && (
                     <div className="flex text-xs bg-slate-950 p-0.5 rounded border border-slate-800 overflow-x-auto">
                       <button
@@ -1156,21 +1116,6 @@ export default function PostmanDashboard() {
                     </button>
 
                     <button
-                      onClick={() => {
-                        const blob = new Blob([JSON.stringify(currentTab.response.body, null, 2)], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `response-${Date.now()}.json`;
-                        a.click();
-                      }}
-                      className="text-slate-400 hover:text-white bg-slate-800 px-2 py-1 rounded transition"
-                      title="Download JSON"
-                    >
-                      ⬇
-                    </button>
-
-                    <button
                       onClick={() => updateCurrentTab({ response: null })}
                       className="text-red-400 hover:text-red-300 bg-slate-800 px-2 py-1 rounded transition"
                       title="Clear Response"
@@ -1181,7 +1126,6 @@ export default function PostmanDashboard() {
                 )}
               </div>
 
-              {/* Response Content View */}
               <div className="flex-1 bg-slate-950 border border-slate-800 rounded p-3 overflow-y-auto font-mono text-xs relative min-h-[140px] max-h-60 md:max-h-none">
                 <AnimatePresence mode="wait">
                   {!currentTab.response ? (
@@ -1204,7 +1148,6 @@ export default function PostmanDashboard() {
                     >
                       {currentTab.responseTab === 'body' && renderPrettyJson(currentTab.response.body)}
 
-                      {/* Safe Headers Rendering */}
                       {currentTab.responseTab === 'headers' && (
                         <div className="space-y-1">
                           {currentTab.response.headers &&
@@ -1305,7 +1248,6 @@ export default function PostmanDashboard() {
                 </button>
               </div>
 
-              {/* Language Selector */}
               <div className="flex border-b border-slate-800 mb-4 gap-2 text-xs overflow-x-auto">
                 {[
                   { id: 'curl', label: 'cURL' },
@@ -1326,7 +1268,6 @@ export default function PostmanDashboard() {
                 ))}
               </div>
 
-              {/* Code Box */}
               <div className="relative bg-slate-950 border border-slate-800 rounded p-4 mb-4 font-mono text-xs text-emerald-300 overflow-x-auto max-h-64">
                 <button
                   onClick={handleCopyCode}

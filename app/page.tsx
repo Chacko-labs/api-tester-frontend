@@ -6,6 +6,8 @@ import axios from 'axios';
 import { Trash2, Settings, Copy, Check, Code, Plus, X, Search, Menu, User, ShieldCheck, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import SeoFooter from "./components/SeoFooter";
+
 
 interface TestResult {
   testName: string;
@@ -1409,6 +1411,7 @@ export default function PostmanDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+      <SeoFooter/>
     </div>
   );
 }
